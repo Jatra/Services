@@ -36,7 +36,7 @@ public class ScanService extends Service {
         @Override
         public void run() {
             Log.d(TAG, "run() on thread "+Thread.currentThread().toString());
-            if (SystemClock.elapsedRealtime() - startTime > 10000) {
+            if (SystemClock.elapsedRealtime() - startTime > 15000) {
                 Log.d(TAG, "stoppingself");
                 stopSelf();
             }
@@ -64,6 +64,10 @@ public class ScanService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "onStartCommand() on thread "+Thread.currentThread().toString());
+        if (intent.getBooleanExtra(STOP_SERVICE, false)) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
         startTime = SystemClock.elapsedRealtime();
         handler.removeCallbacks(scan);
         handler.postDelayed(scan, 5000);
@@ -85,7 +89,7 @@ public class ScanService extends Service {
     }
 
     private void toForeground() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent notificationIntent = new Intent(this, ScanService.class);
         notificationIntent.putExtra(STOP_SERVICE, true);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         NotificationCompat.Builder builder =

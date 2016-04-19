@@ -65,7 +65,7 @@ public class MyIntentService extends IntentService {
         @Override
         public void run() {
             Log.d(TAG, "run() on thread "+Thread.currentThread().toString());
-            if (SystemClock.elapsedRealtime() - startTime > 10000) {
+            if (SystemClock.elapsedRealtime() - startTime > 15000) {
                 Log.d(TAG, "allowing to finish");
                 semaphore.release();
             }
@@ -86,6 +86,11 @@ public class MyIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "onHandleIntent() on thread "+Thread.currentThread().toString());
+        if (intent.getBooleanExtra(STOP_INTENT_SERVICE, false)) {
+            Log.d(TAG, "Stopping: onHandleIntent() called with: " + "intent = [" + intent + "]");
+            semaphore.release();
+            return;
+        }
         startTime = SystemClock.elapsedRealtime();
         handler.removeCallbacks(scan);
         handler.postDelayed(scan, 1000);
@@ -100,7 +105,7 @@ public class MyIntentService extends IntentService {
     }
 
     private void toForeground() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent notificationIntent = new Intent(this, MyIntentService.class);
         notificationIntent.putExtra(STOP_INTENT_SERVICE, true);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
         NotificationCompat.Builder builder =
